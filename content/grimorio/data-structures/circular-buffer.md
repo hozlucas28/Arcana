@@ -33,21 +33,29 @@ Un **buffer circular** es una estructura especial que utiliza un [[struct]] para
 ## 2. Operaciones y complejidad
 
 ### Operaciones principales
-
-- Lista de operaciones con nombres estandarizados (por ejemplo: push/pop/peek, insert/delete/find, append/concat, union/intersect).
-- Para cada operación: breve descripción de lo que hace.
+- `push(x)` inserta un elemento, en caso de estar lleno, pisa el elemento mas antiguo
+- `pop()` retornar elemento mas antiguo
+- `peek()` / `top()` consultar elemento mas antiguo
+- `isEmpty()` verifica si el buffer no contiene elementos
+- `isFull()` verifica si el buffer alcanzo la capacidad máxima de elementos
+- `clear()` / `reset()` vacía el buffer y reinicia los punteros
 
 ### Complejidad
 
-- Por operación: tiempo (peor/ promedio/ amortizado) y complejidad espacial adicional.
-- Notas sobre costos ocultos (reallocs, rehash, recorridos, copias).
+|                       | Mejor caso | Caso promedio | Peor caso | Espacial |
+| --------------------- | ---------- | ------------- | --------- | -------- |
+| `push(x)`             | O(1)       | O(1)          | O(1)      | O(1)     |
+| `pop()`               | O(1)       | O(1)          | O(1)      | O(1)     |
+| `peek()` / `top()`    | O(1)       | O(1)          | O(1)      | O(1)     |
+| `isEmpty()`           | O(1)       | O(1)          | O(1)      | O(1)     |
+| `isFull()`            | O(1)       | O(1)          | O(1)      | O(1)     |
+| `clear()` / `reset()` | O(1)       | O(1)          | O(1)      | O(1)     |
+| `find()`              | O(1)       | O(n)          | O(n)      | O(1)     |
 
 ### Detalles operativos
-
-- Casos especiales: operaciones en estructura vacía/llena, duplicados, orden, límites de tamaño.
-- Comportamiento en concurrencia o fallos (si aplica).
-
-Debe responder a: "¿qué puedo hacer y cuánto cuesta?"
+- Puede haber underflow (hacer pop en buffer vacía)
+- Posee tamaño fijo, el tamaño del buffer se define al momento de su creación y no puede cambiarse. 
+- Si el buffer se encuentra lleno, se pisa el elemento mas antiguo
 
 ## 3. Implementación
 
