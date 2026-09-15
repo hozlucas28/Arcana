@@ -33,6 +33,7 @@ Un **buffer circular** es una estructura especial que utiliza un [[struct]] para
 ## 2. Operaciones y complejidad
 
 ### Operaciones principales
+
 - `push(x)` inserta un elemento, en caso de estar lleno, pisa el elemento mas antiguo
 - `pop()` retornar elemento mas antiguo
 - `peek()` / `top()` consultar elemento mas antiguo
@@ -53,8 +54,9 @@ Un **buffer circular** es una estructura especial que utiliza un [[struct]] para
 | `find()`              | O(1)       | O(n)          | O(n)      | O(1)     |
 
 ### Detalles operativos
+
 - Puede haber underflow (hacer pop en buffer vacía)
-- Posee tamaño fijo, el tamaño del buffer se define al momento de su creación y no puede cambiarse. 
+- Posee tamaño fijo, el tamaño del buffer se define al momento de su creación y no puede cambiarse.
 - Si el buffer se encuentra lleno, se pisa el elemento mas antiguo
 
 ## 3. Implementación
@@ -62,17 +64,18 @@ Un **buffer circular** es una estructura especial que utiliza un [[struct]] para
 ### Idea de implementación
 
 Una implementación típica del BufferCircular utiliza un [[array]] de tamaño fijo y 2 punteros índices: `head` para escribir, `tail` para leer.
+
 - `lenght` para mantener la cantidad de elementos almacenados.
 - `tail` siempre apunta al elemento más antiguo.
 - `head` siempre apunta a la próxima posición de escritura.
-- Tanto `head` como `tail` deben avanzar utilizando `% capacity` para nunca salir de los límites del array.
-Cuando alguno de los índices alcanza el final del array, vuelve a la posición `0` utilizando el operador módulo `%`.
+- Tanto `head` como `tail` deben avanzar utilizando `% capacity` para nunca salir de los límites del array. Cuando alguno de los índices alcanza el final del array, vuelve a la posición `0` utilizando el operador módulo `%`.
+
 ### Invariantes
 
 - `0 <= head < capacity`
 - `0 <= tail < capacity`
 - `0 <= lenght <= capacity`
-- Se inserta siempre en *head* y se lee siempre de *tail*
+- Se inserta siempre en _head_ y se lee siempre de _tail_
 
 ### Ejemplo de código
 
@@ -81,37 +84,37 @@ class CircularBuffer:
 	def __init__(self, capacity):
 		if capacity <= 0:
 			raise Exception("Capacity debe ser un entero positivo")
-		
+
 		self.capacity = capacity
 		self.buffer = [None] * capacity
 		self.lenght = 0
 		self.head = 0
 		self.tail = 0
-		
+
 	def is_empty(self):
 		return self.lenght == 0
-	
+
 	def is_full(self):
 		return self.lenght == len(self.buffer)
-		
+
 	def enqueue(self, item):
 		if self.is_full():
 			self.tail = (self.tail + 1) % self.capacity
 		else:
 			self.lenght += 1
-		
+
 		self.buffer[self.head] = item
 		self.head = (self.head + 1) % self.capacity
-		
+
 	def dequeue(self):
 		if self.is_empty():
 			raise Exception("Ring vacío")
-		
+
 		item = self.buffer[self.tail]
-		# self.buffer[self.tail] = None # conceptualmente no necesario, pero el garbage collector no va a limpiarlo. 
+		# self.buffer[self.tail] = None # conceptualmente no necesario, pero el garbage collector no va a limpiarlo.
 		self.tail = (self.tail + 1) % self.capacity
 		self.lenght -= 1
-		
+
 		return item
 
 	def peek(self):
@@ -119,7 +122,9 @@ class CircularBuffer:
 			raise Exception("Ring vacío")
 		return self.buffer[self.tail]
 ```
+
 ### Ejemplo de uso típico
+
 ```python
 # Uso para retener las ultimas 3 señales enviadas por un sensor de temperatura
 sensor_temp = CircularBuffer(3)
@@ -156,83 +161,83 @@ Proporciona una manera de almacenar y administrar datos en un búfer de tamaño 
 
 **Telecomunicaciones y redes**
 
-| Caso de uso | Aplicación del buffer circular |
-| --- | --- |
-| Mitigación del jitter en VoIP | Almacena temporalmente los paquetes de audio y los entrega a una velocidad constante, reduciendo cortes y distorsiones. |
-| Recepción de paquetes de red | Conserva los paquetes recibidos hasta que el sistema pueda procesarlos y permite absorber ráfagas breves de tráfico. |
-| Comunicación por UART, USB o Bluetooth | Guarda temporalmente los datos recibidos mientras el procesador realiza otras tareas. |
+| Caso de uso                            | Aplicación del buffer circular                                                                                          |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Mitigación del jitter en VoIP          | Almacena temporalmente los paquetes de audio y los entrega a una velocidad constante, reduciendo cortes y distorsiones. |
+| Recepción de paquetes de red           | Conserva los paquetes recibidos hasta que el sistema pueda procesarlos y permite absorber ráfagas breves de tráfico.    |
+| Comunicación por UART, USB o Bluetooth | Guarda temporalmente los datos recibidos mientras el procesador realiza otras tareas.                                   |
 
 **Audio y video**
 
-| Caso de uso | Aplicación del buffer circular |
-| --- | --- |
-| Streaming en tiempo real | Compensa variaciones temporales en la velocidad de descarga para mantener una reproducción fluida. |
-| Grabación y reproducción de audio | Permite que un componente escriba muestras nuevas mientras otro procesa o reproduce las anteriores. |
-| Grabación continua | Conserva los últimos minutos de una cámara y reemplaza automáticamente las grabaciones más antiguas. |
+| Caso de uso                       | Aplicación del buffer circular                                                                       |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Streaming en tiempo real          | Compensa variaciones temporales en la velocidad de descarga para mantener una reproducción fluida.   |
+| Grabación y reproducción de audio | Permite que un componente escriba muestras nuevas mientras otro procesa o reproduce las anteriores.  |
+| Grabación continua                | Conserva los últimos minutos de una cámara y reemplaza automáticamente las grabaciones más antiguas. |
 
 **Sistemas operativos y hardware**
 
-| Caso de uso | Aplicación del buffer circular |
-| --- | --- |
-| Subsistemas de entrada y salida | Compensa las diferencias de velocidad entre los dispositivos periféricos y el procesador. |
-| Controladores de dispositivos | Almacena datos generados por un dispositivo hasta que el sistema operativo pueda procesarlos. |
-| Acceso directo a memoria (DMA) | Permite que el hardware escriba datos en una región circular mientras el procesador lee los anteriores. |
-| Trazas del sistema | Conserva los eventos más recientes del sistema para tareas de seguimiento y depuración. |
+| Caso de uso                     | Aplicación del buffer circular                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Subsistemas de entrada y salida | Compensa las diferencias de velocidad entre los dispositivos periféricos y el procesador.               |
+| Controladores de dispositivos   | Almacena datos generados por un dispositivo hasta que el sistema operativo pueda procesarlos.           |
+| Acceso directo a memoria (DMA)  | Permite que el hardware escriba datos en una región circular mientras el procesador lee los anteriores. |
+| Trazas del sistema              | Conserva los eventos más recientes del sistema para tareas de seguimiento y depuración.                 |
 
 **Sensores y sistemas embebidos**
 
-| Caso de uso | Aplicación del buffer circular |
-| --- | --- |
-| Lecturas de sensores | Mantiene las últimas N mediciones y reemplaza las más antiguas cuando alcanza la capacidad. |
-| Telemetría | Almacena temporalmente datos generados por vehículos, máquinas o dispositivos IoT antes de transmitirlos. |
-| Dispositivos con memoria limitada | Mantiene un consumo de memoria fijo y reutiliza continuamente el mismo espacio. |
+| Caso de uso                       | Aplicación del buffer circular                                                                            |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Lecturas de sensores              | Mantiene las últimas N mediciones y reemplaza las más antiguas cuando alcanza la capacidad.               |
+| Telemetría                        | Almacena temporalmente datos generados por vehículos, máquinas o dispositivos IoT antes de transmitirlos. |
+| Dispositivos con memoria limitada | Mantiene un consumo de memoria fijo y reutiliza continuamente el mismo espacio.                           |
 
 **Procesamiento de datos**
 
-| Caso de uso | Aplicación del buffer circular |
-| --- | --- |
-| Ventanas deslizantes | Mantiene las últimas N observaciones para calcular promedios móviles, máximos, mínimos o tendencias. |
-| Procesamiento digital de señales | Conserva las muestras anteriores necesarias para aplicar filtros y otros cálculos. |
-| Detección de patrones | Permite analizar una cantidad limitada de valores recientes para detectar cambios o anomalías. |
+| Caso de uso                      | Aplicación del buffer circular                                                                       |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Ventanas deslizantes             | Mantiene las últimas N observaciones para calcular promedios móviles, máximos, mínimos o tendencias. |
+| Procesamiento digital de señales | Conserva las muestras anteriores necesarias para aplicar filtros y otros cálculos.                   |
+| Detección de patrones            | Permite analizar una cantidad limitada de valores recientes para detectar cambios o anomalías.       |
 
 **Programación concurrente**
 
-| Caso de uso | Aplicación del buffer circular |
-| --- | --- |
-| Modelo productor-consumidor | El productor incorpora datos y el consumidor los retira en orden para procesarlos. |
-| Comunicación entre hilos | Facilita el intercambio de información entre componentes que trabajan de manera concurrente. |
-| Cola limitada de tareas | Conserva una cantidad fija de trabajos pendientes y aplica una política cuando alcanza su capacidad. |
+| Caso de uso                 | Aplicación del buffer circular                                                                       |
+| --------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Modelo productor-consumidor | El productor incorpora datos y el consumidor los retira en orden para procesarlos.                   |
+| Comunicación entre hilos    | Facilita el intercambio de información entre componentes que trabajan de manera concurrente.         |
+| Cola limitada de tareas     | Conserva una cantidad fija de trabajos pendientes y aplica una política cuando alcanza su capacidad. |
 
 **Monitoreo y diagnóstico**
 
-| Caso de uso | Aplicación del buffer circular |
-| --- | --- |
-| Registro de eventos | Mantiene los últimos mensajes generados por una aplicación para analizar errores recientes. |
-| Monitoreo de rendimiento | Conserva las últimas mediciones de CPU, memoria, latencia o solicitudes. |
+| Caso de uso                 | Aplicación del buffer circular                                                               |
+| --------------------------- | -------------------------------------------------------------------------------------------- |
+| Registro de eventos         | Mantiene los últimos mensajes generados por una aplicación para analizar errores recientes.  |
+| Monitoreo de rendimiento    | Conserva las últimas mediciones de CPU, memoria, latencia o solicitudes.                     |
 | Registro previo a una falla | Funciona como una caja negra que guarda los eventos inmediatamente anteriores a un problema. |
 
 **Videojuegos y aplicaciones**
 
-| Caso de uso | Aplicación del buffer circular |
-| --- | --- |
-| Procesamiento de entradas | Almacena acciones del teclado, mouse o control hasta que el programa pueda procesarlas. |
-| Historial del jugador | Conserva las últimas posiciones, movimientos o acciones realizadas. |
+| Caso de uso               | Aplicación del buffer circular                                                                 |
+| ------------------------- | ---------------------------------------------------------------------------------------------- |
+| Procesamiento de entradas | Almacena acciones del teclado, mouse o control hasta que el programa pueda procesarlas.        |
+| Historial del jugador     | Conserva las últimas posiciones, movimientos o acciones realizadas.                            |
 | Repeticiones instantáneas | Conserva los últimos segundos de la partida para reproducirlos sin guardar la sesión completa. |
 
 ### Cuándo NO usarlo
 
 Antes de implementar un buffer circular es importante analizar las necesidades y limitaciones del sistema. Aunque esta estructura se destaca por utilizar eficientemente la memoria y permitir el procesamiento continuo de datos, no resulta adecuada para todos los escenarios. Su capacidad fija, la posible sobrescritura de elementos y sus limitaciones para realizar búsquedas pueden convertirse en desventajas cuando se necesita conservar toda la información o acceder frecuentemente a elementos específicos.
 
-| Situación o requisito | Buffer circular | Alternativa recomendada | Justificación |
-| --- | --- | --- | --- |
-| No se tolera la pérdida de información | No es recomendable si está configurado para sobrescribir los datos más antiguos cuando se llena. | Cola bloqueante o sistema de mensajería persistente | Evita que los datos pendientes sean reemplazados. El productor puede bloquearse o recibir un error cuando no hay espacio disponible. |
-| El volumen de entrada es impredecible | Su capacidad fija puede resultar insuficiente ante un aumento repentino de datos. | Cola dinámica | Puede aumentar su capacidad mientras exista memoria disponible. |
-| Se procesan transacciones financieras o datos críticos | No es adecuado si existe la posibilidad de sobrescribir operaciones todavía no procesadas. | Cola persistente con confirmaciones | Permite conservar las operaciones hasta confirmar que fueron procesadas correctamente. |
-| Se realizan búsquedas frecuentes por clave | Para encontrar un elemento determinado es necesario recorrer el contenido, con un costo de O(n). | [[hash table\|HashMap]] | Permite buscar elementos por clave con una complejidad promedio de O(1). |
-| Se necesita acceso frecuente por una posición arbitraria | No es su objetivo principal, aunque algunas implementaciones permiten acceder mediante índices. | [[array\|Arreglo]] o vector | Permiten acceder directamente a cualquier posición con una complejidad de O(1). |
-| Se debe conservar un historial completo | Su capacidad limitada impide almacenar indefinidamente todos los elementos recibidos. | Lista dinámica, base de datos o almacenamiento persistente | Permite conservar la información anterior sin reemplazarla. |
-| Se dispone de memoria limitada y se conoce la capacidad necesaria | Es recomendable. | Buffer circular | Su tamaño fijo permite controlar el uso de memoria y reutilizar el espacio disponible. |
-| Solo interesa conservar la información más reciente | Es recomendable. | Buffer circular con sobrescritura | Los elementos antiguos pueden reemplazarse porque se priorizan los datos más nuevos. |
+| Situación o requisito                                             | Buffer circular                                                                                  | Alternativa recomendada                                    | Justificación                                                                                                                        |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| No se tolera la pérdida de información                            | No es recomendable si está configurado para sobrescribir los datos más antiguos cuando se llena. | Cola bloqueante o sistema de mensajería persistente        | Evita que los datos pendientes sean reemplazados. El productor puede bloquearse o recibir un error cuando no hay espacio disponible. |
+| El volumen de entrada es impredecible                             | Su capacidad fija puede resultar insuficiente ante un aumento repentino de datos.                | Cola dinámica                                              | Puede aumentar su capacidad mientras exista memoria disponible.                                                                      |
+| Se procesan transacciones financieras o datos críticos            | No es adecuado si existe la posibilidad de sobrescribir operaciones todavía no procesadas.       | Cola persistente con confirmaciones                        | Permite conservar las operaciones hasta confirmar que fueron procesadas correctamente.                                               |
+| Se realizan búsquedas frecuentes por clave                        | Para encontrar un elemento determinado es necesario recorrer el contenido, con un costo de O(n). | [[hash table\|HashMap]]                                    | Permite buscar elementos por clave con una complejidad promedio de O(1).                                                             |
+| Se necesita acceso frecuente por una posición arbitraria          | No es su objetivo principal, aunque algunas implementaciones permiten acceder mediante índices.  | [[array\|Arreglo]] o vector                                | Permiten acceder directamente a cualquier posición con una complejidad de O(1).                                                      |
+| Se debe conservar un historial completo                           | Su capacidad limitada impide almacenar indefinidamente todos los elementos recibidos.            | Lista dinámica, base de datos o almacenamiento persistente | Permite conservar la información anterior sin reemplazarla.                                                                          |
+| Se dispone de memoria limitada y se conoce la capacidad necesaria | Es recomendable.                                                                                 | Buffer circular                                            | Su tamaño fijo permite controlar el uso de memoria y reutilizar el espacio disponible.                                               |
+| Solo interesa conservar la información más reciente               | Es recomendable.                                                                                 | Buffer circular con sobrescritura                          | Los elementos antiguos pueden reemplazarse porque se priorizan los datos más nuevos.                                                 |
 
 **Ejemplo práctico: sistema de transacciones financieras**
 
@@ -247,28 +252,33 @@ Una opción más apropiada sería utilizar una cola bloqueante o un sistema de m
 ### Comparaciones
 
 **vs. cola dinámica basada en [[linked list]] (LinkedList / Queue dinámica)**
+
 - No tiene un límite fijo de capacidad.
 - No descarta ni sobreescribe datos viejos.
 - La asignación y liberación de memoria dinámica (instanciar nuevos objetos/nodos o llamar a malloc/free) puede generar sobrecarga administrativa.
 - Pérdida de localidad espacial: como los nodos se guardan en posiciones dispersas de la memoria, el procesador no puede pre-cargar los datos en su caché de forma eficiente, algo que el buffer circular sí logra gracias a su arreglo contiguo.
 
 **vs. arreglo dinámico redimensionable ([[dynamic array]] / ArrayList)**
+
 - Si se usa como cola extrayendo del principio, un arreglo dinámico obliga a desplazar todos los elementos hacia la izquierda (O(n)).
 - Cuando se redimensiona, sufre picos de latencia al reasignar y copiar todo el bloque. El buffer circular opera en O(1) tanto en lectura como en escritura.
 
 **vs. búfer de pila ([[stack]] estático)**
-- Mecanismo: almacena los datos en un bloque contiguo, pero extrae siempre el último elemento que fue insertado (política LIFO - *Last In, First Out*).
+
+- Mecanismo: almacena los datos en un bloque contiguo, pero extrae siempre el último elemento que fue insertado (política LIFO - _Last In, First Out_).
 - Orden de procesamiento: mientras el buffer circular garantiza que los datos más antiguos se procesen primero (ideal para transmisiones en vivo o colas de espera), la pila prioriza el dato más reciente.
 - Similitud: ambos pueden implementarse sobre un arreglo estático de tamaño fijo para ser eficientes en memoria y tener complejidad O(1) en sus operaciones.
 
 ### Ventajas / desventajas
 
 Ventajas:
+
 - Eficiencia espacial y memoria predecible: al tener un tamaño fijo definido en el momento de su creación, no requiere asignación dinámica de memoria en tiempo de ejecución. Esto evita la fragmentación.
 - Complejidad temporal constante: todas las operaciones principales, como añadir (`push`) y eliminar (`pop`), se ejecutan siempre de manera rápida en tiempo O(1).
 - En sistemas embebidos y comunicaciones de bajo nivel permite un mejor uso de la memoria, debido al tamaño constante del buffer, para solo utilizar la cantidad de memoria que se necesita.
 
 Desventajas:
+
 - El tamaño fijo también puede constituir una desventaja, ya que cuando el búfer se llena, los datos nuevos sobrescribirán los más antiguos.
 - Son difíciles de implementar correctamente en un entorno multihilo o multiproceso.
 
@@ -281,7 +291,7 @@ Desventajas:
 
 Las señales de reconocimiento son características del problema que permiten identificar si un buffer circular es una estructura adecuada. En general, conviene utilizarlo cuando los datos llegan continuamente, deben procesarse en orden y existe una cantidad limitada de memoria disponible.
 
-| **Señal identificada en el problema**                                | **¿Por qué indica el uso de un buffer circular?**                                                                  |
+| **Señal identificada en el problema**                            | **¿Por qué indica el uso de un buffer circular?**                                                              |
 | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
 | Los datos llegan de manera continua                              | Permite insertar y retirar elementos constantemente sin tener que reorganizar toda la estructura.              |
 | Se conoce la capacidad máxima necesaria                          | El buffer se crea con un tamaño fijo, lo que permite controlar el uso de memoria.                              |
@@ -308,24 +318,82 @@ El buffer circular resulta conveniente cuando el problema menciona expresiones c
 
 ## 5. Relaciones y extensiones
 
+Como vimos, el buffer circular no es una estructura aislada: combina el almacenamiento contiguo del [[array]] con la disciplina FIFO de la [[queue]]. Su aporte propio es la aritmética modular, que permite reutilizar indefinidamente un espacio finito sin desplazar elementos ni reservar memoria adicional. A partir de esa base surgen distintas variantes y combinaciones con otras estructuras.
+
 ### Variantes
 
-- Variantes y mejoras (por ejemplo: versiones balanceadas, persistentes, acotadas, indexadas, con hashing, etc.).
+Las variantes se originan al modificar tres decisiones de diseño: - Qué hacer cuando el buffer se llena. - Cómo se representan los índices. - Qué operaciones se exponen.
+
+| Variante                      | En qué se diferencia                                               | Uso típico                                                        |
+| ----------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Con sobrescritura             | Al llenarse reemplaza el elemento más antiguo.                     | Cajas negras, últimas N mediciones, registros de eventos.         |
+| Con rechazo                   | Al llenarse descarta el elemento nuevo y devuelve un error.        | Casos donde el dato antiguo es más valioso que el nuevo.          |
+| Bloqueante                    | Suspende al productor hasta que se libere una posición.            | Modelo productor-consumidor entre hilos.                          |
+| Indexada                      | Permite consultar cualquier elemento almacenado en O(1).           | Ventanas de análisis sobre los últimos N valores.                 |
+| De doble extremo ([[deque]])  | Habilita inserción y extracción en ambos extremos.                 | Base de `ArrayDeque` en Java y `collections.deque` en Python.     |
+| Registro circular persistente | Aplica la misma lógica sobre disco o memoria flash.                | Archivos de log rotativos, registradores de vuelo.                |
+| Redimensionable               | Al llenarse duplica su capacidad y copia los elementos.            | Colas de propósito general, donde no se conoce el volumen máximo. |
+| Doble o triple buffer         | Alterna entre dos o tres bloques grandes en lugar de N elementos.  | Gráficos (_front_ y _back buffer_), transferencias por DMA.       |
+| Capacidad potencia de dos     | Reemplaza `% capacity` por una máscara de bits `& (capacity - 1)`. | Sistemas de alto rendimiento, núcleo de sistemas operativos.      |
+
+Cabe aclarar que no existen variantes balanceadas ni con hashing, porque el buffer circular no organiza los elementos según su valor sino según su orden de llegada. Las mejoras posibles apuntan a la política de saturación, al rendimiento del cálculo de índices y al comportamiento en entornos concurrentes.
 
 ### Relación con otras estructuras
 
-- Dependencias conceptuales y cómo se combina con otras estructuras.
+| Estructura           | Detalle                                                                                                                |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| [[array]]            | El buffer circular es un arreglo de tamaño fijo más aritmética modular; hereda su contigüidad y su capacidad limitada. |
+| [[queue]]            | Es la implementación acotada y contigua de una cola FIFO.                                                              |
+| [[Deque]]            | Surge al habilitar ambos extremos para inserción y extracción.                                                         |
+| [[stack]]            | Comparte el costo O(1), pero aplica la política LIFO.                                                                  |
+| [[linked list]]      | Resuelve el mismo problema lógico sin límite de capacidad, a cambio de perder localidad de memoria.                    |
+| [[hash table]]       | Aporta el acceso por clave en O(1) que el buffer circular no ofrece.                                                   |
+| Montículo ([[heap]]) | Ordena por prioridad en lugar de orden de llegada, con costo O(log n).                                                 |
+
+En la práctica suele combinarse con otras estructuras: junto a una [[hash table]] forma una caché de tamaño fijo, donde el buffer define qué elemento se descarta y la tabla permite buscar por clave; junto a semáforos constituye el clásico problema del productor-consumidor.
+El principio general es que el buffer circular aporta **orden y acotamiento**, y se complementa con otra estructura que aporte la forma de búsqueda que el problema requiera.
 
 ### Notas avanzadas
 
-- Temas avanzados como persistencia, concurrencia, paralelismo, ordenamientos aleatorios, caching, tuning de parámetros.
+- **Persistencia:** no es una estructura persistente en el sentido funcional, porque modifica la memoria en el lugar y cada sobreescritura destruye información. Sí resulta adecuado como registro persistente en disco o memoria flash, donde la escritura secuencial es una ventaja.
+- **Caché y localidad:** el array contiguo favorece la precarga del procesador, pero cuando los datos atraviesan el final del arreglo quedan divididos en dos segmentos, lo que obliga a realizar dos copias de memoria en lugar de una.
+- **Ajuste de la capacidad:** debe estimarse como la tasa máxima de producción por el tiempo máximo que el consumidor puede permanecer detenido, con un margen adicional. Un buffer sobredimensionado desperdicia memoria y aumenta la latencia; uno subdimensionado provoca pérdidas o bloqueos.
+- **Tiempo real:** al no requerir asignación dinámica de memoria, ofrece un tiempo de ejecución acotado y predecible, motivo por el cual se lo utiliza en rutinas de interrupción y sistemas de tiempo real estricto.
 
-Debe responder a: "¿cómo encaja en el mapa general de estructuras de datos?"
+### ¿Cómo encaja en el mapa general de estructuras de datos?
+
+El buffer circular pertenece a las estructuras **lineales de acceso restringido**, junto con la pila([[Stack]]), la cola([[queue]]) y la [[deque]].
+
+```
+Estructuras de datos
+├── Lineales
+│   ├── De acceso general
+│   │   ├── Array                → acceso O(1) por índice, tamaño fijo
+│   │   ├── Dynamic array        → contiguo, crece por duplicación
+│   │   └── Linked list          → enlazada, sin límite de capacidad
+│   └── De acceso restringido
+│       ├── Stack (LIFO)
+│       ├── Queue (FIFO)
+│       │   ├── No acotada       → linked list / dynamic array
+│       │   └── Acotada          → BUFFER CIRCULAR
+│       └── Deque (ambos extremos) → buffer circular de doble extremo
+└── No lineales
+    ├── Jerárquicas              → árboles, heaps
+    └── Asociativas              → hash tables
+```
+
+Una cola sobre lista enlazada resuelve el orden pero no acota la memoria; un arreglo acota la memoria pero no permite avanzar el extremo de lectura sin desplazar elementos.
+
+> El buffer circular existe para unir ambas propiedades mediante una sola idea: la aritmética modular convierte un espacio de memoria finito en una secuencia lógicamente infinita, a cambio de conservar únicamente los elementos más recientes.
+
+Ese compromiso es, en definitiva, lo que define a la estructura. El buffer circular no intenta almacenar todo, sino almacenar lo último de la mejor manera posible. Por eso aparece en la frontera entre el software y el hardware —controladores, DMA, comunicación entre hilos, procesamiento de señales—, donde la memoria es limitada, el tiempo de respuesta debe ser predecible y el dato más reciente es el que realmente importa.
 
 ## 6. Referencias y recursos
 
+1. [EW Skills - Circular Buffer](https://www.ewskills.com/embedded-c/circular-buffer)
+1. [TechVedas .learn - Implementación de un Buffer Circular en C](https://youtu.be/uvD9_Wdtjtw?si=jp2ikM8JuH8_sQtG)
 1. [Boost - Circular Buffer](https://www.boost.org/doc/libs/latest/doc/html/circular_buffer.html)
-2. [Oracle Java - HashMap](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/HashMap.html)
-3. [FasterCapital - Bufer circular: el enfoque FIFO en el almacenamiento de datos](https://fastercapital.com/es/contenido/Bufer-circular--Explicacion-del-bufer-circular--el-enfoque-FIFO-en-el-almacenamiento-de-datos.html#B-fers-circulares-en-aplicaciones-del-mundo-real)
-4. [Baeldung - Circular Buffer](https://www.baeldung.com/cs/circular-buffer)
-5. [Generalist Programmer - Circular Buffer / Ring Buffer Complete Guide](https://generalistprogrammer.com/tutorials/circular-buffer-ring-buffer-complete-guide)
+1. [Oracle Java - HashMap](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/HashMap.html)
+1. [FasterCapital - Bufer circular: el enfoque FIFO en el almacenamiento de datos](https://fastercapital.com/es/contenido/Bufer-circular--Explicacion-del-bufer-circular--el-enfoque-FIFO-en-el-almacenamiento-de-datos.html#B-fers-circulares-en-aplicaciones-del-mundo-real)
+1. [Baeldung - Circular Buffer](https://www.baeldung.com/cs/circular-buffer)
+1. [Generalist Programmer - Circular Buffer / Ring Buffer Complete Guide](https://generalistprogrammer.com/tutorials/circular-buffer-ring-buffer-complete-guide)
