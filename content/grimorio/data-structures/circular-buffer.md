@@ -318,51 +318,30 @@ El buffer circular resulta conveniente cuando el problema menciona expresiones c
 
 ## 5. Relaciones y extensiones
 
-Como vimos, el buffer circular no es una estructura aislada: combina el almacenamiento contiguo del [[array]] con la disciplina FIFO de la [[queue]]. Su aporte propio es la aritmética modular, que permite reutilizar indefinidamente un espacio finito sin desplazar elementos ni reservar memoria adicional. A partir de esa base surgen distintas variantes y combinaciones con otras estructuras.
-
 ### Variantes
 
-Las variantes se originan al modificar tres decisiones de diseño: - Qué hacer cuando el buffer se llena. - Cómo se representan los índices. - Qué operaciones se exponen.
-
-| Variante                      | En qué se diferencia                                               | Uso típico                                                        |
-| ----------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| Con sobrescritura             | Al llenarse reemplaza el elemento más antiguo.                     | Cajas negras, últimas N mediciones, registros de eventos.         |
-| Con rechazo                   | Al llenarse descarta el elemento nuevo y devuelve un error.        | Casos donde el dato antiguo es más valioso que el nuevo.          |
-| Bloqueante                    | Suspende al productor hasta que se libere una posición.            | Modelo productor-consumidor entre hilos.                          |
-| Indexada                      | Permite consultar cualquier elemento almacenado en O(1).           | Ventanas de análisis sobre los últimos N valores.                 |
-| De doble extremo ([[deque]])  | Habilita inserción y extracción en ambos extremos.                 | Base de `ArrayDeque` en Java y `collections.deque` en Python.     |
-| Registro circular persistente | Aplica la misma lógica sobre disco o memoria flash.                | Archivos de log rotativos, registradores de vuelo.                |
-| Redimensionable               | Al llenarse duplica su capacidad y copia los elementos.            | Colas de propósito general, donde no se conoce el volumen máximo. |
-| Doble o triple buffer         | Alterna entre dos o tres bloques grandes en lugar de N elementos.  | Gráficos (_front_ y _back buffer_), transferencias por DMA.       |
-| Capacidad potencia de dos     | Reemplaza `% capacity` por una máscara de bits `& (capacity - 1)`. | Sistemas de alto rendimiento, núcleo de sistemas operativos.      |
-
-Cabe aclarar que no existen variantes balanceadas ni con hashing, porque el buffer circular no organiza los elementos según su valor sino según su orden de llegada. Las mejoras posibles apuntan a la política de saturación, al rendimiento del cálculo de índices y al comportamiento en entornos concurrentes.
+- **Con sobrescritura** (la de este artículo): al llenarse reemplaza el más antiguo. Cajas negras, últimas N mediciones.
+- **Con rechazo:** al llenarse descarta el nuevo y devuelve un error, cuando el dato pendiente vale más que el nuevo.
+- **Bloqueante:** suspende al productor hasta que se libere lugar. Productor-consumidor entre hilos.
+- **De doble extremo ([[deque]]):** inserta y extrae por ambos extremos, como `ArrayDeque` de Java.
+- **Redimensionadle:** al llenarse duplica la capacidad y copia los elementos; pierde la memoria fija a cambio de no descartar datos.
+- **Capacidad potencia de dos:** reemplaza `% capacity` por `& (capacity - 1)`, más barato. Usada en núcleos de sistemas operativos.
 
 ### Relación con otras estructuras
-
-| Estructura           | Detalle                                                                                                                |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| [[array]]            | El buffer circular es un arreglo de tamaño fijo más aritmética modular; hereda su contigüidad y su capacidad limitada. |
-| [[queue]]            | Es la implementación acotada y contigua de una cola FIFO.                                                              |
-| [[Deque]]            | Surge al habilitar ambos extremos para inserción y extracción.                                                         |
-| [[stack]]            | Comparte el costo O(1), pero aplica la política LIFO.                                                                  |
-| [[linked list]]      | Resuelve el mismo problema lógico sin límite de capacidad, a cambio de perder localidad de memoria.                    |
-| [[hash table]]       | Aporta el acceso por clave en O(1) que el buffer circular no ofrece.                                                   |
-| Montículo ([[heap]]) | Ordena por prioridad en lugar de orden de llegada, con costo O(log n).                                                 |
 
 En la práctica suele combinarse con otras estructuras: junto a una [[hash table]] forma una caché de tamaño fijo, donde el buffer define qué elemento se descarta y la tabla permite buscar por clave; junto a semáforos constituye el clásico problema del productor-consumidor.
 El principio general es que el buffer circular aporta **orden y acotamiento**, y se complementa con otra estructura que aporte la forma de búsqueda que el problema requiera.
 
 ### Notas avanzadas
 
-- **Persistencia:** no es una estructura persistente en el sentido funcional, porque modifica la memoria en el lugar y cada sobreescritura destruye información. Sí resulta adecuado como registro persistente en disco o memoria flash, donde la escritura secuencial es una ventaja.
+- **Persistencia:** no es una estructura persistente en el sentido funcional, porque modifica la memoria en el lugar y cada sobreescritura destruye información. 
 - **Caché y localidad:** el array contiguo favorece la precarga del procesador, pero cuando los datos atraviesan el final del arreglo quedan divididos en dos segmentos, lo que obliga a realizar dos copias de memoria en lugar de una.
-- **Ajuste de la capacidad:** debe estimarse como la tasa máxima de producción por el tiempo máximo que el consumidor puede permanecer detenido, con un margen adicional. Un buffer sobredimensionado desperdicia memoria y aumenta la latencia; uno subdimensionado provoca pérdidas o bloqueos.
-- **Tiempo real:** al no requerir asignación dinámica de memoria, ofrece un tiempo de ejecución acotado y predecible, motivo por el cual se lo utiliza en rutinas de interrupción y sistemas de tiempo real estricto.
+- **Ajuste de la capacidad:** debe estimarse como la tasa máxima de producción por el tiempo máximo que el consumidor puede permanecer detenido, con un margen adicional. 
+- **Tiempo real:** al no requerir asignación dinámica de memoria, ofrece un tiempo de ejecución acotado y predecible.
 
 ### ¿Cómo encaja en el mapa general de estructuras de datos?
 
-El buffer circular pertenece a las estructuras **lineales de acceso restringido**, junto con la pila([[Stack]]), la cola([[queue]]) y la [[deque]].
+Pertenece a las estructuras **lineales de acceso restringido**, junto con la pila ([[stack]]), la cola ([[queue]]) y la [[deque]].
 
 ```
 Estructuras de datos
@@ -382,11 +361,9 @@ Estructuras de datos
     └── Asociativas              → hash tables
 ```
 
-Una cola sobre lista enlazada resuelve el orden pero no acota la memoria; un arreglo acota la memoria pero no permite avanzar el extremo de lectura sin desplazar elementos.
+> Una cola enlazada no acota la memoria; un arreglo la acota pero no puede avanzar el frente sin desplazar. El buffer circular une ambas propiedades con aritmética modular.
 
-> El buffer circular existe para unir ambas propiedades mediante una sola idea: la aritmética modular convierte un espacio de memoria finito en una secuencia lógicamente infinita, a cambio de conservar únicamente los elementos más recientes.
-
-Ese compromiso es, en definitiva, lo que define a la estructura. El buffer circular no intenta almacenar todo, sino almacenar lo último de la mejor manera posible. Por eso aparece en la frontera entre el software y el hardware —controladores, DMA, comunicación entre hilos, procesamiento de señales—, donde la memoria es limitada, el tiempo de respuesta debe ser predecible y el dato más reciente es el que realmente importa.
+Ese compromiso es lo que define a la estructura. El buffer circular no intenta almacenar todo, sino almacenar lo último de la mejor manera posible. Por eso aparece en la frontera entre el software y el hardware —controladores, DMA, comunicación entre hilos, procesamiento de señales—, donde la memoria es limitada, el tiempo de respuesta debe ser predecible y el dato más reciente es el que realmente importa.
 
 ## 6. Referencias y recursos
 
