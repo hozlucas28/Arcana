@@ -34,36 +34,36 @@ Un **buffer circular** es una estructura especial que utiliza un [[struct]] para
 
 ### Operaciones principales
 
-- `push(x)` inserta un elemento, en caso de estar lleno, pisa el elemento mas antiguo
-- `pop()` retornar elemento mas antiguo
-- `peek()` / `top()` consultar elemento mas antiguo
-- `isEmpty()` verifica si el buffer no contiene elementos
-- `isFull()` verifica si el buffer alcanzo la capacidad máxima de elementos
-- `clear()` / `reset()` vacía el buffer y reinicia los punteros
+- `push(x)` inserta un elemento, en caso de estar lleno, pisa el elemento más antiguo.
+- `pop()` retornar elemento más antiguo.
+- `peek()` / `top()` consultar elemento más antiguo.
+- `isEmpty()` verifica si el buffer no contiene elementos.
+- `isFull()` verifica si el buffer alcanzo la capacidad máxima de elementos.
+- `clear()` / `reset()` vacía el buffer y reinicia los punteros.
 
 ### Complejidad
 
 |                       | Mejor caso | Caso promedio | Peor caso | Espacial |
 | --------------------- | ---------- | ------------- | --------- | -------- |
-| `push(x)`             | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
-| `pop()`               | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
-| `peek()` / `top()`    | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
-| `isEmpty()`           | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
-| `isFull()`            | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
-| `clear()` / `reset()` | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
-| `find()`              | $O(1)$   | $O(n)$      | $O(n)$  | $O(1)$ |
+| `push(x)`             | $O(1)$     | $O(1)$        | $O(1)$    | $O(1)$   |
+| `pop()`               | $O(1)$     | $O(1)$        | $O(1)$    | $O(1)$   |
+| `peek()` / `top()`    | $O(1)$     | $O(1)$        | $O(1)$    | $O(1)$   |
+| `isEmpty()`           | $O(1)$     | $O(1)$        | $O(1)$    | $O(1)$   |
+| `isFull()`            | $O(1)$     | $O(1)$        | $O(1)$    | $O(1)$   |
+| `clear()` / `reset()` | $O(1)$     | $O(1)$        | $O(1)$    | $O(1)$   |
+| `find()`              | $O(1)$     | $O(n)$        | $O(n)$    | $O(1)$   |
 
 ### Detalles operativos
 
-- Puede haber underflow (hacer pop en buffer vacía)
-- Posee tamaño fijo, el tamaño del buffer se define al momento de su creación y no puede cambiarse.
-- Si el buffer se encuentra lleno, se pisa el elemento mas antiguo
+- Puede haber underflow (hacer pop en buffer vacío).
+- Posee tamaño fijo, el tamaño del buffer se define al momento de su creación y no puede cambiarse..
+- Si el buffer se encuentra lleno, se pisa el elemento más antiguo.
 
 ## 3. Implementación
 
 ### Idea de implementación
 
-Una implementación típica del BufferCircular utiliza un [[array]] de tamaño fijo y 2 punteros índices: `head` para escribir, `tail` para leer.
+Una implementación típica del BufferCircular utiliza un [[array]] de tamaño fijo y 2 punteros índices: `head` para escribir y `tail` para leer.
 
 - `lenght` para mantener la cantidad de elementos almacenados.
 - `tail` siempre apunta al elemento más antiguo.
@@ -75,7 +75,7 @@ Una implementación típica del BufferCircular utiliza un [[array]] de tamaño f
 - `0 <= head < capacity`
 - `0 <= tail < capacity`
 - `0 <= lenght <= capacity`
-- Se inserta siempre en _head_ y se lee siempre de _tail_
+- Se inserta siempre en _head_ y se lee siempre de _tail_.
 
 ### Ejemplo de código
 
@@ -161,51 +161,51 @@ Run completed in 6.199999995529652ms
 - **Audio y video:** conserva muestras pendientes de reproducción y absorbe ráfagas breves.
 - **Sensores:** mantiene las últimas N mediciones, reemplazando las más antiguas.
 
-La capacidad debe cubrir las ráfagas esperadas; si el productor supera al consumidor de manera sostenida, el buffer terminará llenándose.
+La capacidad debe cubrir las ráfagas esperadas, si el productor supera al consumidor de manera sostenida, el buffer terminará llenándose.
 
 ### Cuándo NO usarlo
 
 - **Datos que no pueden perderse:** la sobrescritura puede eliminar operaciones pendientes. Conviene una cola bloqueante o persistente con confirmaciones.
 - **Volumen sin límite conocido:** una cola dinámica puede crecer mientras haya memoria disponible.
-- **Búsqueda frecuente por clave:** una [[hash table]] ofrece búsqueda promedio en $O(1)$; recorrer el buffer cuesta $O(n)$.
+- **Búsqueda frecuente por clave:** una [[hash table]] ofrece búsqueda promedio en $O(1)$, mientras que recorrer el buffer cuesta $O(n)$.
 - **Acceso por posición:** un [[array]] resulta más directo, aunque existen buffers circulares indexados.
-- **Historial completo:** requiere almacenamiento persistente; una ventana acotada no conserva todos los datos.
+- **Historial completo:** requiere almacenamiento persistente, mientras que una ventana acotada no conserva todos los datos.
 
-Por ejemplo, un banco no debe sobrescribir transferencias pendientes cuando se llenan sus 100 posiciones: necesita conservarlas hasta confirmar su procesamiento.
+Por ejemplo, un banco no debe sobrescribir transferencias pendientes cuando se llenan sus 100 posiciones porque necesita conservarlas hasta confirmar su procesamiento.
 
 ### Comparaciones
 
 - **[[linked list]]:** una cola enlazada crece sin una capacidad fija preestablecida, pero necesita asignar nodos y pierde localidad de memoria. El buffer circular reutiliza un bloque contiguo.
-- **[[dynamic array]]:** extraer del principio desplaza elementos en $O(n)$; redimensionar requiere copiar el contenido. El buffer circular fijo inserta y extrae en $O(1)$.
+- **[[dynamic array]]:** extraer del principio desplaza elementos en $O(n)$, por lo que redimensionar requiere copiar el contenido. El buffer circular fijo inserta y extrae en $O(1)$.
 - **[[stack]]:** procesa primero el último elemento (LIFO), mientras el buffer procesa el más antiguo disponible (FIFO). Ambos admiten almacenamiento fijo y operaciones principales en $O(1)$.
 
 ### Ventajas / desventajas
 
 El almacenamiento fijo hace predecible el consumo de memoria y evita reasignaciones durante las operaciones. Su disposición contigua favorece la caché y permite reutilizar espacio sin desplazar elementos.
 
-Como contrapartida, la capacidad debe elegirse de antemano y la sobrescritura pierde datos. El acceso concurrente requiere sincronización; el ejemplo de este artículo no es seguro entre hilos.
+Como contrapartida, la capacidad debe elegirse de antemano y la sobrescritura pierde datos. Además, el acceso concurrente requiere sincronización.
 
 ### Señales de reconocimiento
 
 Buscá requisitos como “últimos N elementos”, “memoria limitada” o un productor y un consumidor que trabajan a ritmos distintos. El buffer sirve para absorber diferencias temporales, siempre que la política ante el llenado sea aceptable.
 
-Por ejemplo, mostrar las últimas 20 temperaturas de un sensor requiere una ventana fija: cada nueva medición reemplaza la más antigua sin aumentar la memoria.
+Por ejemplo, mostrar las últimas 20 temperaturas de un sensor requiere una ventana fija, en donde nuevas mediciones reemplazan las más antiguas sin aumentar la memoria.
 
 ## 5. Relaciones y extensiones
 
 ### Variantes
 
-- **Con sobrescritura** (la de este artículo): al llenarse reemplaza el más antiguo. Cajas negras, últimas N mediciones.
+- **Con sobrescritura**: al llenarse reemplaza el más antiguo. Cajas negras, últimas N mediciones.
 - **Con rechazo:** al llenarse descarta el nuevo y devuelve un error, cuando el dato pendiente vale más que el nuevo.
 - **Bloqueante:** suspende al productor hasta que se libere lugar. Productor-consumidor entre hilos.
-- **De doble extremo ([[deque]]):** inserta y extrae por ambos extremos, como `ArrayDeque` de Java.
-- **Redimensionable:** al llenarse duplica la capacidad y copia los elementos; pierde la memoria fija a cambio de no descartar datos.
+- **De doble extremo ([[deque]]):** inserta y extrae por ambos extremos.
+- **Redimensionable:** al llenarse duplica la capacidad y copia los elementos, perdiendo la memoria fija a cambio de no descartar datos.
 - **Capacidad potencia de dos:** reemplaza `% capacity` por `& (capacity - 1)`, más barato. Usada en núcleos de sistemas operativos.
 
 ### Relación con otras estructuras
 
-En la práctica suele combinarse con otras estructuras: junto a una [[hash table]] forma una caché de tamaño fijo, donde el buffer define qué elemento se descarta y la tabla permite buscar por clave; junto a semáforos constituye el clásico problema del productor-consumidor.
-El principio general es que el buffer circular aporta **orden y acotamiento**, y se complementa con otra estructura que aporte la forma de búsqueda que el problema requiera.
+En la práctica suele combinarse con otras estructuras, como por ejemplo, con un [[hash table]] formando una caché de tamaño fijo en donde el buffer define qué elemento se descarta y la tabla permite buscar por clave, junto a semáforos constituye el clásico problema del productor-consumidor.
+El principio general es que el buffer circular aporte **orden y acotamiento**, y se complemente con otra estructura que aporte la forma de búsqueda que el problema requiera.
 
 ### Notas avanzadas
 
@@ -218,7 +218,7 @@ El principio general es que el buffer circular aporta **orden y acotamiento**, y
 
 Pertenece a las estructuras **lineales de acceso restringido**, junto con la pila ([[stack]]), la cola ([[queue]]) y la [[deque]].
 
-El buffer circular combina almacenamiento contiguo y capacidad acotada con aritmética modular: reutiliza las posiciones liberadas sin desplazar los elementos pendientes.
+El buffer circular combina almacenamiento contiguo y capacidad acotada con aritmética modular, reutilizando las posiciones liberadas sin desplazar los elementos pendientes.
 
 ## 6. Referencias y recursos
 
