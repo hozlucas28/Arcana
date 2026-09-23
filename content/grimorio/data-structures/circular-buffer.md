@@ -129,7 +129,7 @@ class CircularBuffer:
 # Uso para retener las ultimas 3 señales enviadas por un sensor de temperatura
 sensor_temp = CircularBuffer(3)
 # Simulando que nuestro sensor recibió 5 señales antes de que lo leamos
-for x in [18.5, 19.0, 20.2, 21.5, 22.0]
+for x in [18.5, 19.0, 20.2, 21.5, 22.0]:
 	sensor_temp.enqueue(x)
 # Al leerlo nos encontramos con
 while not sensor_temp.is_empty():
