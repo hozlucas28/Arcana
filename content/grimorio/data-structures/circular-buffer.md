@@ -155,81 +155,42 @@ Run completed in 6.199999995529652ms
 
 ## 4. Uso y criterio
 
-Proporciona una manera de almacenar y administrar datos en un búfer de tamaño fijo como si estuvieran conectados de un extremo a otro, lo cual es una solución elegante para administrar flujos de datos que llegan a velocidades impredecibles o en ráfagas. Esta estructura FIFO (primero en entrar, primero en salir) es particularmente útil en aplicaciones donde el búfer se puede llenar y vaciar a diferentes velocidades, lo que garantiza que los datos más antiguos se procesen primero sin necesidad de una indexación compleja o una mezcla de datos.
-
 ### Casos de uso
 
-Se pueden destacar tres ejemplos representativos:
-- **Telecomunicaciones y redes:** Almacena temporalmente los paquetes de audio y los entrega a una velocidad constante, mitigando el jitter en VoIP.
-- **Audio y video:** Compensa variaciones temporales en la velocidad de descarga para mantener una reproducción fluida en streaming en tiempo real.
-- **Sensores y sistemas embebidos:** Mantiene las últimas N mediciones de los sensores y reemplaza las más antiguas cuando alcanza la capacidad.
+- **Telecomunicaciones y redes:** almacena paquetes de audio para compensar variaciones de llegada y mitigar el jitter en VoIP.
+- **Audio y video:** conserva muestras pendientes de reproducción y absorbe ráfagas breves.
+- **Sensores:** mantiene las últimas N mediciones, reemplazando las más antiguas.
+
+La capacidad debe cubrir las ráfagas esperadas; si el productor supera al consumidor de manera sostenida, el buffer terminará llenándose.
 
 ### Cuándo NO usarlo
 
-Antes de implementar un buffer circular es importante analizar las necesidades y limitaciones del sistema. Aunque esta estructura se destaca por utilizar eficientemente la memoria y permitir el procesamiento continuo de datos, no resulta adecuada para todos los escenarios. Su capacidad fija, la posible sobrescritura de elementos y sus limitaciones para realizar búsquedas pueden convertirse en desventajas cuando se necesita conservar toda la información o acceder frecuentemente a elementos específicos.
+- **Datos que no pueden perderse:** la sobrescritura puede eliminar operaciones pendientes. Conviene una cola bloqueante o persistente con confirmaciones.
+- **Volumen sin límite conocido:** una cola dinámica puede crecer mientras haya memoria disponible.
+- **Búsqueda frecuente por clave:** una [[hash table]] ofrece búsqueda promedio en $O(1)$; recorrer el buffer cuesta $O(n)$.
+- **Acceso por posición:** un [[array]] resulta más directo, aunque existen buffers circulares indexados.
+- **Historial completo:** requiere almacenamiento persistente; una ventana acotada no conserva todos los datos.
 
-| Situación o requisito                                             | Buffer circular                                                                                  | Alternativa recomendada                                    | Justificación                                                                                                                        |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| No se tolera la pérdida de información                            | No es recomendable si está configurado para sobrescribir los datos más antiguos cuando se llena. | Cola bloqueante o sistema de mensajería persistente        | Evita que los datos pendientes sean reemplazados. El productor puede bloquearse o recibir un error cuando no hay espacio disponible. |
-| El volumen de entrada es impredecible                             | Su capacidad fija puede resultar insuficiente ante un aumento repentino de datos.                | Cola dinámica                                              | Puede aumentar su capacidad mientras exista memoria disponible.                                                                      |
-| Se procesan transacciones financieras o datos críticos            | No es adecuado si existe la posibilidad de sobrescribir operaciones todavía no procesadas.       | Cola persistente con confirmaciones                        | Permite conservar las operaciones hasta confirmar que fueron procesadas correctamente.                                               |
-| Se realizan búsquedas frecuentes por clave                        | Para encontrar un elemento determinado es necesario recorrer el contenido, con un costo de $O(n)$. | [[hash table\|HashMap]]                                    | Permite buscar elementos por clave con una complejidad promedio de $O(1)$.                                                             |
-| Se necesita acceso frecuente por una posición arbitraria          | No es su objetivo principal, aunque algunas implementaciones permiten acceder mediante índices.  | [[array\|Arreglo]] o vector                                | Permiten acceder directamente a cualquier posición con una complejidad de $O(1)$.                                                      |
-| Se debe conservar un historial completo                           | Su capacidad limitada impide almacenar indefinidamente todos los elementos recibidos.            | Lista dinámica, base de datos o almacenamiento persistente | Permite conservar la información anterior sin reemplazarla.                                                                          |
-| Se dispone de memoria limitada y se conoce la capacidad necesaria | Es recomendable.                                                                                 | Buffer circular                                            | Su tamaño fijo permite controlar el uso de memoria y reutilizar el espacio disponible.                                               |
-| Solo interesa conservar la información más reciente               | Es recomendable.                                                                                 | Buffer circular con sobrescritura                          | Los elementos antiguos pueden reemplazarse porque se priorizan los datos más nuevos.                                                 |
-
-**Ejemplo práctico: sistema de transacciones financieras**
-
-Si un banco utiliza un buffer circular de 100 posiciones para almacenar transferencias y el sistema se demora, al llenarse, cada nueva transferencia sobrescribiría una operación no procesada perdiendo información crítica. Una cola persistente prioriza la integridad conservando las transacciones sin perder datos.
+Por ejemplo, un banco no debe sobrescribir transferencias pendientes cuando se llenan sus 100 posiciones: necesita conservarlas hasta confirmar su procesamiento.
 
 ### Comparaciones
 
-**vs. cola dinámica basada en [[linked list]] (LinkedList / Queue dinámica)**
-
-- No tiene un límite fijo de capacidad.
-- No descarta ni sobreescribe datos viejos.
-- La asignación y liberación de memoria dinámica (instanciar nuevos objetos/nodos o llamar a malloc/free) puede generar sobrecarga administrativa.
-- Pérdida de localidad espacial: como los nodos se guardan en posiciones dispersas de la memoria, el procesador no puede pre-cargar los datos en su caché de forma eficiente, algo que el buffer circular sí logra gracias a su arreglo contiguo.
-
-**vs. arreglo dinámico redimensionable ([[dynamic array]] / ArrayList)**
-
-- Si se usa como cola extrayendo del principio, un arreglo dinámico obliga a desplazar todos los elementos hacia la izquierda ($O(n)$).
-- Cuando se redimensiona, sufre picos de latencia al reasignar y copiar todo el bloque. El buffer circular opera en $O(1)$ tanto en lectura como en escritura.
-
-**vs. búfer de pila ([[stack]] estático)**
-
-- Mecanismo: almacena los datos en un bloque contiguo, pero extrae siempre el último elemento que fue insertado (política LIFO - _Last In, First Out_).
-- Orden de procesamiento: mientras el buffer circular garantiza que los datos más antiguos se procesen primero (ideal para transmisiones en vivo o colas de espera), la pila prioriza el dato más reciente.
-- Similitud: ambos pueden implementarse sobre un arreglo estático de tamaño fijo para ser eficientes en memoria y tener complejidad $O(1)$ en sus operaciones.
+- **[[linked list]]:** una cola enlazada crece sin una capacidad fija preestablecida, pero necesita asignar nodos y pierde localidad de memoria. El buffer circular reutiliza un bloque contiguo.
+- **[[dynamic array]]:** extraer del principio desplaza elementos en $O(n)$; redimensionar requiere copiar el contenido. El buffer circular fijo inserta y extrae en $O(1)$.
+- **[[stack]]:** procesa primero el último elemento (LIFO), mientras el buffer procesa el más antiguo disponible (FIFO). Ambos admiten almacenamiento fijo y operaciones principales en $O(1)$.
 
 ### Ventajas / desventajas
 
-Ventajas:
+El almacenamiento fijo hace predecible el consumo de memoria y evita reasignaciones durante las operaciones. Su disposición contigua favorece la caché y permite reutilizar espacio sin desplazar elementos.
 
-- Eficiencia espacial y memoria predecible: al tener un tamaño fijo definido en el momento de su creación, no requiere asignación dinámica de memoria en tiempo de ejecución. Esto evita la fragmentación.
-- Complejidad temporal constante: todas las operaciones principales, como añadir (`push`) y eliminar (`pop`), se ejecutan siempre de manera rápida en tiempo $O(1)$.
-- En sistemas embebidos y comunicaciones de bajo nivel permite un mejor uso de la memoria, debido al tamaño constante del buffer, para solo utilizar la cantidad de memoria que se necesita.
-
-Desventajas:
-
-- El tamaño fijo también puede constituir una desventaja, ya que cuando el búfer se llena, los datos nuevos sobrescribirán los más antiguos.
-- Son difíciles de implementar correctamente en un entorno multihilo o multiproceso.
+Como contrapartida, la capacidad debe elegirse de antemano y la sobrescritura pierde datos. El acceso concurrente requiere sincronización; el ejemplo de este artículo no es seguro entre hilos.
 
 ### Señales de reconocimiento
 
-- **Desacoplar productor y consumidor:** si el problema describe un proceso o dispositivo que genera datos muy rápido (o en ráfagas) y otro que los lee a un ritmo distinto, indicando la necesidad de amortiguar esa diferencia de velocidades sin bloquear el sistema.
-- **Memoria estática y tamaño conocido:** cuando se dispone de una cantidad de memoria fija y limitada, y se conoce o puede estimarse de antemano la capacidad máxima necesaria. El espacio utilizado puede reutilizarse continuamente.
-- **Operaciones rápidas y predecibles:** cuando se necesitan inserciones y extracciones frecuentes con tiempo de operación $O(1)$.
-- **Flujo continuo con backlog acotado:** cuando los datos llegan y se consumen de manera continua y existe un límite razonable para la cantidad de elementos que pueden permanecer pendientes. Esto es habitual en sistemas de streaming, procesamiento en tiempo real y sistemas embebidos.
+Buscá requisitos como “últimos N elementos”, “memoria limitada” o un productor y un consumidor que trabajan a ritmos distintos. El buffer sirve para absorber diferencias temporales, siempre que la política ante el llenado sea aceptable.
 
-**Ejemplo de reconocimiento**
+Por ejemplo, mostrar las últimas 20 temperaturas de un sensor requiere una ventana fija: cada nueva medición reemplaza la más antigua sin aumentar la memoria.
 
-Si se necesita un sistema que muestre las últimas 20 mediciones de temperatura obtenidas por un sensor continuo, el buffer circular es ideal: permite reutilizar la memoria, mantiene un límite fijo y sobrescribe automáticamente la medición más antigua.
-
-**Conclusión**
-
-El buffer circular resulta conveniente cuando el problema menciona expresiones como "últimos N elementos", "flujo continuo de datos", "memoria limitada", "procesamiento en orden de llegada" o "reemplazar la información más antigua". Estas son las principales pistas que permiten reconocer que la estructura puede resolver el problema de manera eficiente.
 ## 5. Relaciones y extensiones
 
 ### Variantes
@@ -248,36 +209,16 @@ El principio general es que el buffer circular aporta **orden y acotamiento**, y
 
 ### Notas avanzadas
 
-- **Persistencia:** no es una estructura persistente en el sentido funcional, porque modifica la memoria en el lugar y cada sobreescritura destruye información. 
+- **Persistencia:** no es una estructura persistente en el sentido funcional, porque modifica la memoria en el lugar y cada sobreescritura destruye información.
 - **Caché y localidad:** el array contiguo favorece la precarga del procesador, pero cuando los datos atraviesan el final del arreglo quedan divididos en dos segmentos, lo que obliga a realizar dos copias de memoria en lugar de una.
-- **Ajuste de la capacidad:** debe estimarse como la tasa máxima de producción por el tiempo máximo que el consumidor puede permanecer detenido, con un margen adicional. 
+- **Ajuste de la capacidad:** debe estimarse como la tasa máxima de producción por el tiempo máximo que el consumidor puede permanecer detenido, con un margen adicional.
 - **Tiempo real:** al no requerir asignación dinámica de memoria, ofrece un tiempo de ejecución acotado y predecible.
 
 ### ¿Cómo encaja en el mapa general de estructuras de datos?
 
 Pertenece a las estructuras **lineales de acceso restringido**, junto con la pila ([[stack]]), la cola ([[queue]]) y la [[deque]].
 
-```
-Estructuras de datos
-├── Lineales
-│   ├── De acceso general
-│   │   ├── Array                → acceso O(1) por índice, tamaño fijo
-│   │   ├── Dynamic array        → contiguo, crece por duplicación
-│   │   └── Linked list          → enlazada, sin límite de capacidad
-│   └── De acceso restringido
-│       ├── Stack (LIFO)
-│       ├── Queue (FIFO)
-│       │   ├── No acotada       → linked list / dynamic array
-│       │   └── Acotada          → BUFFER CIRCULAR
-│       └── Deque (ambos extremos) → buffer circular de doble extremo
-└── No lineales
-    ├── Jerárquicas              → árboles, heaps
-    └── Asociativas              → hash tables
-```
-
-> Una cola enlazada no acota la memoria; un arreglo la acota pero no puede avanzar el frente sin desplazar. El buffer circular une ambas propiedades con aritmética modular.
-
-Ese compromiso es lo que define a la estructura. El buffer circular no intenta almacenar todo, sino almacenar lo último de la mejor manera posible. Por eso aparece en la frontera entre el software y el hardware —controladores, DMA, comunicación entre hilos, procesamiento de señales—, donde la memoria es limitada, el tiempo de respuesta debe ser predecible y el dato más reciente es el que realmente importa.
+El buffer circular combina almacenamiento contiguo y capacidad acotada con aritmética modular: reutiliza las posiciones liberadas sin desplazar los elementos pendientes.
 
 ## 6. Referencias y recursos
 
