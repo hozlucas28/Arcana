@@ -45,13 +45,13 @@ Un **buffer circular** es una estructura especial que utiliza un [[struct]] para
 
 |                       | Mejor caso | Caso promedio | Peor caso | Espacial |
 | --------------------- | ---------- | ------------- | --------- | -------- |
-| `push(x)`             | O(1)       | O(1)          | O(1)      | O(1)     |
-| `pop()`               | O(1)       | O(1)          | O(1)      | O(1)     |
-| `peek()` / `top()`    | O(1)       | O(1)          | O(1)      | O(1)     |
-| `isEmpty()`           | O(1)       | O(1)          | O(1)      | O(1)     |
-| `isFull()`            | O(1)       | O(1)          | O(1)      | O(1)     |
-| `clear()` / `reset()` | O(1)       | O(1)          | O(1)      | O(1)     |
-| `find()`              | O(1)       | O(n)          | O(n)      | O(1)     |
+| `push(x)`             | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
+| `pop()`               | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
+| `peek()` / `top()`    | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
+| `isEmpty()`           | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
+| `isFull()`            | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
+| `clear()` / `reset()` | $O(1)$   | $O(1)$      | $O(1)$  | $O(1)$ |
+| `find()`              | $O(1)$   | $O(n)$      | $O(n)$  | $O(1)$ |
 
 ### Detalles operativos
 
