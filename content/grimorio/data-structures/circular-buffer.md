@@ -238,7 +238,7 @@ El buffer circular resulta conveniente cuando el problema menciona expresiones c
 - **Con rechazo:** al llenarse descarta el nuevo y devuelve un error, cuando el dato pendiente vale más que el nuevo.
 - **Bloqueante:** suspende al productor hasta que se libere lugar. Productor-consumidor entre hilos.
 - **De doble extremo ([[deque]]):** inserta y extrae por ambos extremos, como `ArrayDeque` de Java.
-- **Redimensionadle:** al llenarse duplica la capacidad y copia los elementos; pierde la memoria fija a cambio de no descartar datos.
+- **Redimensionable:** al llenarse duplica la capacidad y copia los elementos; pierde la memoria fija a cambio de no descartar datos.
 - **Capacidad potencia de dos:** reemplaza `% capacity` por `& (capacity - 1)`, más barato. Usada en núcleos de sistemas operativos.
 
 ### Relación con otras estructuras
