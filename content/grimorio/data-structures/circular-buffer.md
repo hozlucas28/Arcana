@@ -7,7 +7,6 @@ alias:
   - cyclic buffer
   - ring buffer
 ---
-
 ## 1. Qué es y cómo funciona
 
 ### Intuición
@@ -23,7 +22,7 @@ Un **buffer circular** es una estructura especial que utiliza un [[struct]] para
 
 ### Representación
 
-![Representación del buffer circular](circular-buffer.svg)
+![[circular-buffer.svg|Representación del buffer circular|450]]
 
 - `buffer`: array de tamaño fijo que almacena elementos.
 - `length`: cantidad de elementos que el buffer tiene almacenados.
@@ -63,19 +62,13 @@ Un **buffer circular** es una estructura especial que utiliza un [[struct]] para
 
 ### Idea de implementación
 
-Una implementación típica del BufferCircular utiliza un [[array]] de tamaño fijo y 2 punteros índices: `head` para escribir y `tail` para leer.
-
-- `lenght` para mantener la cantidad de elementos almacenados.
-- `tail` siempre apunta al elemento más antiguo.
-- `head` siempre apunta a la próxima posición de escritura.
-- Tanto `head` como `tail` deben avanzar utilizando `% capacity` para nunca salir de los límites del array. Cuando alguno de los índices alcanza el final del array, vuelve a la posición `0` utilizando el operador módulo `%`.
+Usa un [[array]] fijo y dos índices (`head` y `tail`). Ambos avanzan con aritmética modular (`% capacity`), reutilizando posiciones sin desplazar elementos.
 
 ### Invariantes
 
 - `0 <= head < capacity`
 - `0 <= tail < capacity`
-- `0 <= lenght <= capacity`
-- Se inserta siempre en _head_ y se lee siempre de _tail_.
+- `0 <= length <= capacity`
 
 ### Ejemplo de código
 
@@ -87,21 +80,21 @@ class CircularBuffer:
 
 		self.capacity = capacity
 		self.buffer = [None] * capacity
-		self.lenght = 0
+		self.length = 0
 		self.head = 0
 		self.tail = 0
 
 	def is_empty(self):
-		return self.lenght == 0
+		return self.length == 0
 
 	def is_full(self):
-		return self.lenght == len(self.buffer)
+		return self.length == len(self.buffer)
 
 	def push(self, item):
 		if self.is_full():
 			self.tail = (self.tail + 1) % self.capacity
 		else:
-			self.lenght += 1
+			self.length += 1
 
 		self.buffer[self.head] = item
 		self.head = (self.head + 1) % self.capacity
@@ -111,9 +104,8 @@ class CircularBuffer:
 			raise Exception("Ring vacío")
 
 		item = self.buffer[self.tail]
-		# self.buffer[self.tail] = None # conceptualmente no necesario, pero el garbage collector no va a limpiarlo.
 		self.tail = (self.tail + 1) % self.capacity
-		self.lenght -= 1
+		self.length -= 1
 
 		return item
 
@@ -126,31 +118,17 @@ class CircularBuffer:
 ### Ejemplo de uso típico
 
 ```python
-# Uso para retener las ultimas 3 señales enviadas por un sensor de temperatura
-sensor_temp = CircularBuffer(3)
-# Simulando que nuestro sensor recibió 5 señales antes de que lo leamos
+# Retener las últimas 3 lecturas de un sensor
+sensor = CircularBuffer(3)
 for x in [18.5, 19.0, 20.2, 21.5, 22.0]:
-	sensor_temp.push(x)
-# Al leerlo nos encontramos con
-while not sensor_temp.is_empty():
-    print("pop ->", sensor_temp.pop())
-# 20.2 21.5 22.0
-```
+	sensor.push(x)
 
-```bash
-Run started
-
-Initializing environment
-
-Running code
-
-pop -> 20.2
-
-pop -> 21.5
-
-pop -> 22.0
-
-Run completed in 6.199999995529652ms
+while not sensor.is_empty():
+	print("pop ->", sensor.pop())
+# Salida:
+# pop -> 20.2
+# pop -> 21.5
+# pop -> 22.0
 ```
 
 ## 4. Uso y criterio
