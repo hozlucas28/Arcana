@@ -97,7 +97,7 @@ class CircularBuffer:
 	def is_full(self):
 		return self.lenght == len(self.buffer)
 
-	def enqueue(self, item):
+	def push(self, item):
 		if self.is_full():
 			self.tail = (self.tail + 1) % self.capacity
 		else:
@@ -106,7 +106,7 @@ class CircularBuffer:
 		self.buffer[self.head] = item
 		self.head = (self.head + 1) % self.capacity
 
-	def dequeue(self):
+	def pop(self):
 		if self.is_empty():
 			raise Exception("Ring vacío")
 
@@ -130,10 +130,10 @@ class CircularBuffer:
 sensor_temp = CircularBuffer(3)
 # Simulando que nuestro sensor recibió 5 señales antes de que lo leamos
 for x in [18.5, 19.0, 20.2, 21.5, 22.0]:
-	sensor_temp.enqueue(x)
+	sensor_temp.push(x)
 # Al leerlo nos encontramos con
 while not sensor_temp.is_empty():
-    print("dequeue ->", sensor_temp.dequeue())
+    print("pop ->", sensor_temp.pop())
 # 20.2 21.5 22.0
 ```
 
@@ -144,11 +144,11 @@ Initializing environment
 
 Running code
 
-dequeue -> 20.2
+pop -> 20.2
 
-dequeue -> 21.5
+pop -> 21.5
 
-dequeue -> 22.0
+pop -> 22.0
 
 Run completed in 6.199999995529652ms
 ```
