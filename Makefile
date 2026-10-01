@@ -3,7 +3,7 @@ SHELL := /bin/bash
 
 .DEFAULT_GOAL := help
 .PHONY: help start
-.PHONY: lint
+.PHONY: lint deploy
 
 help:
 	@echo "Usage: make <target>"
@@ -12,6 +12,7 @@ help:
 	@echo "  start    Run: npm run quartz -- build --serve"
 	@echo "  lint     Run markdown linter (fails if issues found)"
 	@echo "  lint-fix Run markdown linter with auto-fix where possible"
+	@echo "  deploy   Run: git push"
 	@echo "  help     Show this help"
 
 start:
@@ -29,4 +30,5 @@ lint-fix:
 	@echo "Running: npm run lint:md:fix (this will modify files)"
 	@npm run lint:md:fix
 	@echo "Done. Review and commit changes if acceptable."
+
 
