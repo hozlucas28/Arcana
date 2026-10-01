@@ -20,12 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js 20
+      - name: Use project Node.js version
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: .node-version
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund || true
+        run: npm ci --prefer-offline --no-audit --no-fund
       - name: Run markdownlint
         id: lint
         run: |
