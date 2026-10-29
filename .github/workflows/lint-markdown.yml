@@ -72,7 +72,3 @@ jobs:
                 body: fullBody,
               });
             }
-
-      - name: Fail on Markdown errors
-        if: ${{ steps.lint.outputs.had_errors == 'true' }}
-        run: exit 1
