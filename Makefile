@@ -31,4 +31,5 @@ lint-fix:
 	@npm run lint:md:fix
 	@echo "Done. Review and commit changes if acceptable."
 
-
+deploy:
+	git push
